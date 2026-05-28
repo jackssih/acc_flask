@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}User Management — ACC Archives{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-title">User Management</div>
+  <div class="page-sub">Manage who can access the archive</div>
+</div>
+<hr class="page-divider">
+
+<div style="display:grid; grid-template-columns:1fr 1.6fr; gap:20px">
+
+  <!-- Add user -->
+  <div class="card">
+    <div class="card-title"><i class="ti ti-user-plus"></i> Add New User</div>
+    <form method="POST" action="{{ url_for('users.add_user') }}">
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <select name="role" class="form-control">
+          <option value="viewer">Viewer</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-download"><i class="ti ti-plus"></i> Create User</button>
+    </form>
+  </div>
+
+  <!-- User list -->
+  <div class="card" style="padding:0; overflow:hidden">
+    <div style="padding:16px 20px 0">
+      <div class="card-title"><i class="ti ti-users"></i> All Users</div>
+    </div>
+    <div class="table-wrap" style="border:none; margin-top:14px">
+      <table>
+        <thead><tr><th>Username</th><th>Role</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>
+              <span class="ini-circle">{{ u.username[:2]|upper }}</span>
+              {{ u.username }}
+            </td>
+            <td>
+              <span class="role-badge {{ u.role }}">{{ u.role|capitalize }}</span>
+            </td>
+            <td style="display:flex; gap:6px; align-items:center">
+              <form method="POST" action="{{ url_for('users.change_role', user_id=u.id) }}" style="display:flex; gap:6px">
+                <select name="role" class="form-control" style="width:90px; padding:4px 8px; font-size:12px">
+                  <option value="viewer" {% if u.role=='viewer' %}selected{% endif %}>Viewer</option>
+                  <option value="admin"  {% if u.role=='admin'  %}selected{% endif %}>Admin</option>
+                </select>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+              </form>
+              <form method="POST" action="{{ url_for('users.delete_user', user_id=u.id) }}"
+                    onsubmit="return confirm('Delete user {{ u.username }}?')">
+                <button type="submit" class="btn btn-danger btn-sm"><i class="ti ti-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

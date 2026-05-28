@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — ACC Archives{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px">
+    <div>
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">Track and explore all choir data</div>
+    </div>
+    <!-- Search bar -->
+    <form action="{{ url_for('dashboard.search') }}" method="GET"
+          style="display:flex; gap:8px; align-items:center">
+      <div class="search-input-wrap">
+        <i class="ti ti-search"></i>
+        <input type="text" name="q" class="form-control search-input"
+               placeholder="Search by name or ID…" style="width:240px">
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm">Search</button>
+    </form>
+  </div>
+</div>
+<hr class="page-divider">
+
+<!-- Metric cards -->
+<div class="metrics-row">
+  <a href="{{ url_for('dashboard.view', view_type='all') }}" class="metric-card">
+    <div class="metric-icon teal"><i class="ti ti-users"></i></div>
+    <div class="metric-label">Total Students</div>
+    <div class="metric-value">{{ total }}</div>
+    <div class="metric-hint">across all choirs</div>
+    <i class="ti ti-users metric-bg-icon"></i>
+  </a>
+<a href="{{ url_for('dashboard.view', view_type='graduated') }}" class="metric-card">
+    <div class="metric-icon amber"><i class="ti ti-school"></i></div>
+    <div class="metric-label">Graduated</div>
+    <div class="metric-value">{{ graduated }}</div>
+    <div class="metric-hint">{{ ((graduated/total*100)|round(1)) if total else 0 }}% rate</div>
+    <i class="ti ti-school metric-bg-icon"></i>
+  </a>
+   <a href="{{ url_for('dashboard.view', view_type='not_graduated') }}" class="metric-card">
+    <div class="metric-icon blue"><i class="ti ti-clock-hour-4"></i></div>
+    <div class="metric-label">Not Graduated</div>
+    <div class="metric-value">{{ not_grad }}</div>
+    <div class="metric-hint">pending follow-up</div>
+    <i class="ti ti-clock-hour-4 metric-bg-icon"></i>
+  </a>
+  <a href="{{ url_for('dashboard.view', view_type='deceased') }}" class="metric-card">
+    <div class="metric-icon red"><i class="ti ti-heart-broken"></i></div>
+    <div class="metric-label">Deceased</div>
+    <div class="metric-value">{{ deceased }}</div>
+    <div class="metric-hint">in archive</div>
+    <i class="ti ti-heart-broken metric-bg-icon"></i>
+  </a>
+
+</div>
+
+<!-- Charts row -->
+<div class="dashboard-grid">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-chart-bar"></i> Graduation Trend</div>
+    <canvas id="trendChart" height="160"></canvas>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><i class="ti ti-music"></i> By Choir</div>
+    {% for row in choir_stats %}
+    <div style="margin-bottom:12px">
+      <div style="display:flex; justify-content:space-between; margin-bottom:4px">
+        <span style="font-size:12px; font-weight:500">{{ row.choir }}</span>
+        <span style="font-size:11px; color:#9A927E">{{ row.graduated }}/{{ row.total }} · {{ row.rate }}%</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar
+          {% if row.rate >= 80 %}pb-amber
+          {% elif row.rate >= 60 %}pb-green
+          {% elif row.rate >= 40 %}pb-mid
+          {% else %}pb-faded{% endif %}"
+          style="--bar-w: {{ row.rate }}%">
+        </div>
+      </div>
+    </div>
+   
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Recent graduates -->
+<div class="card">
+  <div class="card-title" style="justify-content:space-between">
+    <span><i class="ti ti-award"></i> Recent Graduates</span>
+    <a href="{{ url_for('dashboard.export', view_type='graduated') }}" class="btn btn-download btn-sm">
+      <i class="ti ti-download"></i> Export
+    </a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th><th>Choir</th><th>Institute</th><th>Course</th><th>Year</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in recent %}
+        <tr>
+          <td>
+            <span class="ini-circle">{{ r.name[:2]|upper }}</span>{{ r.name }}
+          </td>
+          <td>{{ r.choir or '—' }}</td>
+          <td>{{ r.institute or '—' }}</td>
+          <td>{{ r.course_name or '—' }}</td>
+          <td><span class="badge badge-gray">{{ r.year_of_graduation|int if r.year_of_graduation else '—' }}</span></td>
+          <td><span class="badge badge-green">Graduated</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="color:#9A927E; text-align:center; padding:24px">No graduates yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+
+
+{% block scripts %}
+<script id="chart-data" type="application/json">
+  { "labels": {{ trend_labels|tojson }}, "values": {{ trend_values|tojson }} }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+
+const { labels, values } = JSON.parse(
+  document.getElementById('chart-data').textContent
+);
+if (labels.length && values.length) {
+  const lastIdx   = values.length - 1;
+  const startGreen = Math.max(0, values.length - 3); // guard against negative index
+
+  const colors = values.map((_, i) =>
+    i === lastIdx          ? '#E8A020' :          // most recent bar → amber
+    i >= startGreen        ? '#1D9E75' :          // last 3 bars → green
+                             'rgba(29,158,117,0.3)' // older bars → faded
+  );
+
+  new Chart(document.getElementById('trendChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderRadius: 5
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#9A927E' } },
+        y: {
+          grid: { color: '#F1EFE8' },
+          ticks: { color: '#9A927E' },
+          border: { display: false }
+        }
+      }
+    }
+  });
+} else {
+  const canvas = document.getElementById('trendChart');
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#9A927E';
+  ctx.font = '14px DM Sans, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('No graduation data yet.', canvas.width / 2, 80);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Search Results — ACC Archives{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px">
+    <div>
+      <div class="page-title">Search Results</div>
+      <div class="page-sub">{{ results|length }} result(s)
+        {% if query %} · "{{ query }}"{% endif %}
+      </div>
+    </div>
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary btn-sm">
+      <i class="ti ti-arrow-left"></i> Back
+    </a>
+  </div>
+</div>
+<hr class="page-divider">
+
+<!-- Filters -->
+<form action="{{ url_for('dashboard.search') }}" method="GET"
+      style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; align-items:flex-end">
+  <div style="flex:1; min-width:180px">
+    <label class="form-label">Search</label>
+    <div class="search-input-wrap">
+      <i class="ti ti-search"></i>
+      <input type="text" name="q" class="form-control search-input" value="{{ query }}" placeholder="Name or ID…">
+    </div>
+  </div>
+  <div>
+    <label class="form-label">Choir</label>
+    <select name="choir" class="form-control filter-select">
+      <option value="">All choirs</option>
+      {% for c in choirs %}
+      <option value="{{ c }}" {% if choir_f==c %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label class="form-label">Gender</label>
+    <select name="gender" class="form-control" style="width:110px">
+      <option value="">All</option>
+      <option value="M" {% if gender_f=='M' %}selected{% endif %}>Male</option>
+      <option value="F" {% if gender_f=='F' %}selected{% endif %}>Female</option>
+    </select>
+  </div>
+  <div>
+    <label class="form-label">Status</label>
+    <select name="status" class="form-control" style="width:140px">
+      <option value="">All</option>
+      <option value="graduated"     {% if status_f=='graduated'     %}selected{% endif %}>Graduated</option>
+      <option value="not_graduated" {% if status_f=='not_graduated' %}selected{% endif %}>Not Graduated</option>
+      <option value="deceased"      {% if status_f=='deceased'      %}selected{% endif %}>Deceased</option>
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary">Filter</button>
+</form>
+
+<div class="card" style="padding:0; overflow:hidden">
+  <div class="table-wrap" style="border:none">
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Choir</th><th>Gender</th><th>Status</th><th>Institute</th><th>Course</th><th>Year</th></tr>
+      </thead>
+      <tbody>
+        {% for r in results %}
+        <tr>
+          <td><span class="ini-circle">{{ r.name[:2]|upper if r.name else '??' }}</span>{{ r.name or '—' }}</td>
+          <td>{{ r.choir or '—' }}</td>
+          <td>{{ 'Male' if r.gender=='M' else 'Female' if r.gender=='F' else '—' }}</td>
+          <td>
+            {% if r.status == 'deceased' %}
+              <span class="badge badge-red">Deceased</span>
+            {% elif r.year_of_graduation %}
+              <span class="badge badge-green">Graduated</span>
+            {% else %}
+              <span class="badge badge-gray">Pending</span>
+            {% endif %}
+          </td>
+          <td>{{ r.institute or '—' }}</td>
+          <td>{{ r.course_name or '—' }}</td>
+          <td>{{ r.year_of_graduation|int if r.year_of_graduation else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" style="text-align:center; color:#9A927E; padding:28px">No students match your search.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

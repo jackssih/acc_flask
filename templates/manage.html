@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Manage Data — ACC Archives{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title">Manage Data</div>
+  <div class="page-sub">Upload, add, and remove student records</div>
+</div>
+<hr class="page-divider">
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px">
+
+  <!-- Templates -->
+  <div class="card">
+    <div class="card-title"><i class="ti ti-file-download"></i> Download Templates</div>
+    <p style="font-size:12px; color:#9A927E; margin-bottom:14px">
+      Download a template, fill it in, then upload. Column names must match exactly.
+    </p>
+    <div style="display:flex; gap:10px; flex-wrap:wrap">
+      <a href="{{ url_for('manage.download_template', kind='choir') }}" class="btn btn-primary">
+        <i class="ti ti-download"></i> Choir Template
+      </a>
+      <a href="{{ url_for('manage.download_template', kind='graduation') }}" class="btn btn-primary">
+        <i class="ti ti-download"></i> Graduation Template
+      </a>
+    </div>
+  </div>
+
+  <!-- Upload -->
+  <div class="card">
+    <div class="card-title"><i class="ti ti-cloud-upload"></i> Bulk Upload</div>
+    <form method="POST" action="{{ url_for('manage.upload_choir') }}" enctype="multipart/form-data" style="margin-bottom:16px">
+      <div class="form-group">
+        <label class="form-label">Upload Choir Data (.csv or .xlsx)</label>
+        <input type="file" name="choir_file" accept=".csv,.xlsx" class="form-control">
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="ti ti-upload"></i> Upload Choir Data</button>
+    </form>
+    <form method="POST" action="{{ url_for('manage.upload_graduation') }}" enctype="multipart/form-data">
+      <div class="form-group">
+        <label class="form-label">Upload Graduation Data (.csv or .xlsx)</label>
+        <input type="file" name="grad_file" accept=".csv,.xlsx" class="form-control">
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="ti ti-upload"></i> Upload Graduation Data</button>
+    </form>
+  </div>
+
+  <!-- Add student -->
+  <div class="card">
+    <div class="card-title"><i class="ti ti-user-plus"></i> Add New Student</div>
+    <form method="POST" action="{{ url_for('manage.add_student') }}">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" name="name" class="form-control" placeholder="e.g. Sarah Nalwoga" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Choir</label>
+        <input type="text" name="choir" class="form-control" placeholder="e.g. ACC 32" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Gender</label>
+          <select name="gender" class="form-control">
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select name="status" class="form-control">
+            <option value="alive">Alive</option>
+            <option value="deceased">Deceased</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-download"><i class="ti ti-plus"></i> Add Student</button>
+    </form>
+  </div>
+
+  <!-- Delete student -->
+  <div class="card">
+    <div class="card-title"><i class="ti ti-user-minus" style="color:#C0392B"></i> Remove Student</div>
+    <div style="background:rgba(255,140,66,0.08); border:1px solid rgba(255,140,66,0.25); border-radius:9px; padding:10px 13px; font-size:12px; color:#7A3A00; margin-bottom:16px; display:flex; gap:8px; align-items:flex-start">
+      <i class="ti ti-alert-triangle" style="margin-top:1px; flex-shrink:0"></i>
+      This permanently deletes the student and all their graduation records.
+    </div>
+    <form method="POST" action="{{ url_for('manage.delete_student') }}">
+      <div class="form-group">
+        <label class="form-label">Student Name (exact match)</label>
+        <input type="text" name="name" class="form-control" placeholder="Enter exact name to remove…" required>
+      </div>
+      <div class="form-group" style="display:flex; align-items:center; gap:8px">
+        <input type="checkbox" name="confirm" id="confirm_del" style="width:15px;height:15px;accent-color:#E06820">
+        <label for="confirm_del" style="font-size:12px; color:#5F5E5A">I confirm I want to permanently remove this student</label>
+      </div>
+      <button type="submit" class="btn btn-danger"><i class="ti ti-trash"></i> Remove Student</button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

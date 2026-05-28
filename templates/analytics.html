@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block title %}Analytics — ACC Archives{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title">Analytics</div>
+  <div class="page-sub">Graduation insights across all choirs</div>
+</div>
+<hr class="page-divider">
+
+<!-- Stat cards -->
+<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px">
+  <div class="card" style="display:flex; align-items:center; gap:14px; padding:16px">
+    <div class="metric-icon teal"><i class="ti ti-chart-pie"></i></div>
+    <div>
+      <div class="metric-label">Graduation Rate</div>
+      <div class="metric-value" style="font-size:22px">{{ grad_rate }}%</div>
+      <div class="metric-hint">{{ graduated }} of {{ total }} students</div>
+    </div>
+  </div>
+  <div class="card" style="display:flex; align-items:center; gap:14px; padding:16px">
+    <div class="metric-icon amber"><i class="ti ti-gender-bigender"></i></div>
+    <div>
+      <div class="metric-label">Gender Split</div>
+      <div class="metric-value" style="font-size:22px">{{ male }}M · {{ female }}F</div>
+      <div class="metric-hint">
+        {{ ((male/total*100)|round|int) if total else 0 }}% male ·
+        {{ ((female/total*100)|round|int) if total else 0 }}% female
+      </div>
+    </div>
+  </div>
+  <div class="card" style="display:flex; align-items:center; gap:14px; padding:16px">
+    <div class="metric-icon blue"><i class="ti ti-trophy"></i></div>
+    <div>
+      <div class="metric-label">Top Choir</div>
+      <div class="metric-value" style="font-size:18px">{{ top_choir.choir }}</div>
+      <div class="metric-hint">{{ top_choir.rate }}% graduation rate</div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts row -->
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:20px; margin-bottom:24px">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-chart-bar"></i> Graduation Rate by Choir</div>
+    <canvas id="choirChart" height="180"></canvas>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><i class="ti ti-users"></i> Gender Breakdown</div>
+    {% set total_safe = total if total else 1 %}
+    {% for label, value, pct, cls in [
+      ('Male',     male,    (male/total_safe*100)|round|int,    'pb-green'),
+      ('Female',   female,  (female/total_safe*100)|round|int,  'pb-amber'),
+      ('Deceased', deceased,(deceased/total_safe*100)|round|int,'pb-faded'),
+    ] %}
+    <div style="margin-bottom:14px">
+      <div style="display:flex; justify-content:space-between; margin-bottom:4px">
+        <span style="font-size:12px; font-weight:500">{{ label }}</span>
+        <span style="font-size:11px; color:#9A927E">{{ value }} · {{ pct }}%</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar {{ cls }}" style="--bar-w: {{ pct }}%"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Yearly trend -->
+<div class="card" style="margin-bottom:24px">
+  <div class="card-title"><i class="ti ti-trending-up"></i> Graduation Trend by Year</div>
+  <canvas id="yearChart" height="140"></canvas>
+</div>
+
+<!-- Choir breakdown table -->
+<div class="card" style="padding:0; overflow:hidden">
+  <div style="padding:16px 20px 0; display:flex; justify-content:space-between; align-items:center">
+    <div class="card-title" style="margin-bottom:0"><i class="ti ti-list"></i> Choir Breakdown</div>
+    <a href="{{ url_for('analytics.index') }}?export=1" class="btn btn-download btn-sm">
+      <i class="ti ti-download"></i> Export
+    </a>
+  </div>
+  <div class="table-wrap" style="border:none; margin-top:14px">
+    <table>
+      <thead>
+        <tr><th>Choir</th><th>Total</th><th>Graduated</th><th>Pending</th><th>Deceased</th><th>Rate</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for row in choir_stats %}
+        <tr>
+          <td><strong>{{ row.choir }}</strong></td>
+          <td>{{ row.total }}</td>
+          <td>{{ row.graduated }}</td>
+          <td>{{ row.pending }}</td>
+          <td>{{ row.deceased }}</td>
+          <td>
+            <div style="display:flex; align-items:center; gap:8px">
+              <div class="progress-bar-wrap" style="width:70px">
+                <div class="progress-bar
+                  {% if row.rate >= 80 %}pb-amber
+                  {% elif row.rate >= 60 %}pb-green
+                  {% elif row.rate >= 40 %}pb-mid
+                  {% else %}pb-faded{% endif %}"
+                  style="--bar-w: {{ row.rate }}%">
+                </div>
+              </div>
+              <span style="font-size:12px; font-weight:500">{{ row.rate }}%</span>
+            </div>
+          </td>
+          <td>
+            {% if row.rate >= 80 %}
+              <span class="badge badge-green">Excellent</span>
+            {% elif row.rate >= 60 %}
+              <span class="badge badge-green">Good</span>
+            {% elif row.rate >= 40 %}
+              <span class="badge badge-orange">Average</span>
+            {% else %}
+              <span class="badge badge-gray">Needs attention</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const trendLabels = {{ trend_labels|safe }};
+const trendValues = {{ trend_values|safe }};
+const choirLabels = {{ choir_labels|safe }};
+const choirRates  = {{ choir_rates|safe }};
+
+// ── shared colour logic (matches dashboard trend chart) ───
+function trendColors(values) {
+  const lastIdx    = values.length - 1;
+  const startGreen = Math.max(0, values.length - 3);
+  return values.map((_, i) =>
+    i === lastIdx    ? '#E8A020' :
+    i >= startGreen  ? '#1D9E75' :
+                       'rgba(29,158,117,0.3)'
+  );
+}
+
+function rateColors(rates) {
+  const maxRate = Math.max(...rates);
+  return rates.map(r =>
+    r === maxRate      ? '#E8A020' :
+    r >= 60            ? '#1D9E75' :
+    r >= 40            ? 'rgba(29,158,117,0.55)' :
+                         'rgba(29,158,117,0.28)'
+  );
+}
+
+const chartDefaults = {
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { display: false }, ticks: { color: '#9A927E' } },
+    y: { grid: { color: '#F1EFE8' }, ticks: { color: '#9A927E' }, border: { display: false } }
+  }
+};
+
+// Choir rate chart
+new Chart(document.getElementById('choirChart'), {
+  type: 'bar',
+  data: {
+    labels: choirLabels,
+    datasets: [{ data: choirRates, backgroundColor: rateColors(choirRates), borderRadius: 5 }]
+  },
+  options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, max: 100 } } }
+});
+
+// Year trend chart
+new Chart(document.getElementById('yearChart'), {
+  type: 'bar',
+  data: {
+    labels: trendLabels,
+    datasets: [{ data: trendValues, backgroundColor: trendColors(trendValues), borderRadius: 5 }]
+  },
+  options: chartDefaults
+});
+</script>
+{% endblock %}
