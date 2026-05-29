@@ -71,7 +71,7 @@ def index():
         total=total, graduated=graduated, not_grad=not_grad, deceased=deceased,
         choir_stats=choir_stats[:6],
         trend_labels=[str(y) for y in trend_labels],
-        trend_values=trend_values, 
+        trend_values=trend_values,
         recent=recent,
     )
 
@@ -117,6 +117,7 @@ def search():
 @login_required
 def view(view_type):
     data = load_full_dataset()
+    query = request.args.get("q", "").strip()
 
     if view_type == "all":
         rows = data
@@ -129,9 +130,16 @@ def view(view_type):
     else:
         rows = data
 
+    if query:
+        ql = query.lower()
+        rows = [r for r in rows if
+                ql in (r["name"] or "").lower() or
+                ql in (r["identification_no"] or "").lower()]
+
     return render_template("table_view.html",
         rows=rows, view_type=view_type,
         is_admin=(session.get("role") == "admin"),
+        query=query,
     )
 
 
