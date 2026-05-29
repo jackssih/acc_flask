@@ -128,22 +128,24 @@
 {% endblock %}
 
 {% block scripts %}
-<div id="chartData"
-  data-trend-labels="{{ trend_labels|tojson }}"
-  data-trend-values="{{ trend_values|tojson }}"
-  data-choir-labels="{{ choir_labels|tojson }}"
-  data-choir-rates="{{ choir_rates|tojson }}">
-</div>
+
+<script id="chart-data" type="application/json">
+{
+  "trendLabels": {{ trend_labels|tojson }},
+  "trendValues": {{ trend_values|tojson }},
+  "choirLabels": {{ choir_labels|tojson }},
+  "choirRates":  {{ choir_rates|tojson }}
+}
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-const el = document.getElementById('chartData');
-const trendLabels = JSON.parse(el.dataset.trendLabels);
-const trendValues = JSON.parse(el.dataset.trendValues);
-const choirLabels = JSON.parse(el.dataset.choirLabels);
-const choirRates  = JSON.parse(el.dataset.choirRates);
+const chartData   = JSON.parse(document.getElementById('chart-data').textContent);
+const trendLabels = chartData.trendLabels;
+const trendValues = chartData.trendValues;
+const choirLabels = chartData.choirLabels;
+const choirRates  = chartData.choirRates;
 
-
-// ── shared colour logic (matches dashboard trend chart) ───
 function trendColors(values) {
   const lastIdx    = values.length - 1;
   const startGreen = Math.max(0, values.length - 3);
@@ -157,39 +159,48 @@ function trendColors(values) {
 function rateColors(rates) {
   const maxRate = Math.max(...rates);
   return rates.map(r =>
-    r === maxRate      ? '#E8A020' :
-    r >= 60            ? '#1D9E75' :
-    r >= 40            ? 'rgba(29,158,117,0.55)' :
-                         'rgba(29,158,117,0.28)'
+    r === maxRate ? '#E8A020' :
+    r >= 60       ? '#1D9E75' :
+    r >= 40       ? 'rgba(29,158,117,0.55)' :
+                    'rgba(29,158,117,0.28)'
   );
 }
 
-const chartDefaults = {
-  plugins: { legend: { display: false } },
-  scales: {
-    x: { grid: { display: false }, ticks: { color: '#9A927E' } },
-    y: { grid: { color: '#F1EFE8' }, ticks: { color: '#9A927E' }, border: { display: false } }
-  }
-};
-
 // Choir rate chart
-new Chart(document.getElementById('choirChart'), {
-  type: 'bar',
-  data: {
-    labels: choirLabels,
-    datasets: [{ data: choirRates, backgroundColor: rateColors(choirRates), borderRadius: 5 }]
-  },
-  options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, max: 100 } } }
-});
+if (choirLabels.length) {
+  new Chart(document.getElementById('choirChart'), {
+    type: 'bar',
+    data: {
+      labels: choirLabels,
+      datasets: [{ data: choirRates, backgroundColor: rateColors(choirRates), borderRadius: 5 }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#9A927E' } },
+        y: { max: 100, grid: { color: '#F1EFE8' }, ticks: { color: '#9A927E' }, border: { display: false } }
+      }
+    }
+  });
+}
 
 // Year trend chart
-new Chart(document.getElementById('yearChart'), {
-  type: 'bar',
-  data: {
-    labels: trendLabels,
-    datasets: [{ data: trendValues, backgroundColor: trendColors(trendValues), borderRadius: 5 }]
-  },
-  options: chartDefaults
-});
+if (trendLabels.length) {
+  new Chart(document.getElementById('yearChart'), {
+    type: 'bar',
+    data: {
+      labels: trendLabels,
+      datasets: [{ data: trendValues, backgroundColor: trendColors(trendValues), borderRadius: 5 }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#9A927E' } },
+        y: { grid: { color: '#F1EFE8' }, ticks: { color: '#9A927E' }, border: { display: false } }
+      }
+    }
+  });
+}
 </script>
+
 {% endblock %}
