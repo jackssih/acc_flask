@@ -457,7 +457,24 @@ html[data-theme="dark"] .cal-day.today   { color: #fff    }
     }
 
     /* responsive */
-    @media (max-width: 768px) {
+    /* responsive */
+@media (max-width: 768px) {
+  .layout { 
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+  /* Photo panel comes FIRST on mobile */
+  .photo-panel { 
+    display: block !important;
+    min-height: 45vh;
+    order: 1;
+  }
+  /* Form panel comes SECOND on mobile */
+  .form-panel { 
+    padding: 36px 28px;
+    order: 2;
+  }
+}@media (max-width: 768px) {
       .layout { grid-template-columns: 1fr }
       .photo-panel { display: none }
       .form-panel { padding: 36px 28px }
@@ -566,3 +583,10 @@ html[data-theme="dark"] .mobile-header {
 html[data-theme="dark"] .mobile-brand { color: #E8E4DC; }
 html[data-theme="dark"] .hamburger { color: #E8E4DC; }
 html[data-theme="dark"] .hamburger:hover { background: rgba(255,140,66,0.10); }
+/* Ensure proper stacking on mobile */
+@media (max-width: 768px) {
+  .layout {
+    display: flex;
+    flex-direction: column;
+  }
+}
