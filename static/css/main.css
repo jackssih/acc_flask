@@ -567,3 +567,69 @@ html[data-theme="dark"] .mobile-header {
 }
 html[data-theme="dark"] .mobile-brand { color: #E8E4DC }
 html[data-theme="dark"] .hamburger    { color: #E8E4DC }
+/* ── MOBILE HEADER ── */
+.mobile-header {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: #1a3a2a;   /* match your sidebar color */
+  color: #fff;
+  padding: 10px 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hamburger {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+/* ── SIDEBAR OVERLAY ── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 300;
+}
+.sidebar-overlay.visible {
+  display: block;
+}
+
+/* ── MOBILE BREAKPOINT ── */
+@media (max-width: 768px) {
+  .mobile-header {
+    display: flex;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 260px;
+    z-index: 400;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    overflow-y: auto;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+
+  .layout {
+    flex-direction: column;
+  }
+}
