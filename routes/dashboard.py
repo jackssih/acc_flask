@@ -183,6 +183,25 @@ def save_graduation():
     return redirect(request.referrer or url_for("dashboard.index"))
 
 
+@dashboard_bp.route("/dashboard/remove_graduation", methods=["POST"])
+@admin_required
+def remove_graduation():
+    grad_id           = request.form.get("grad_id")
+    identification_no = request.form.get("identification_no")
+
+    if not grad_id:
+        flash("No graduation record found to remove.", "error")
+        return redirect(request.referrer or url_for("dashboard.index"))
+
+    conn = connect_db()
+    conn.execute("DELETE FROM graduation_data WHERE id=? AND identification_no=?",
+                 (grad_id, identification_no))
+    conn.commit()
+    conn.close()
+    flash("Graduation record removed. Student moved back to Not Graduated.", "success")
+    return redirect(url_for("dashboard.view", view_type="not_graduated"))
+
+
 @dashboard_bp.route("/dashboard/export/<view_type>")
 @login_required
 def export(view_type):
