@@ -183,23 +183,27 @@
 
 </script>
 <script>
-  // Make sure this code is present and not duplicated
 const hamburger = document.getElementById('hamburger');
 const sidebar = document.querySelector('.sidebar');
 const overlay = document.getElementById('sidebarOverlay');
 
 function openSidebar() {
+  if (!sidebar || !overlay) return;
   sidebar.classList.add('open');
   overlay.classList.add('visible');
+  document.body.style.overflow = 'hidden'; // Prevent scrolling when sidebar is open
 }
 
 function closeSidebar() {
+  if (!sidebar || !overlay) return;
   sidebar.classList.remove('open');
   overlay.classList.remove('visible');
+  document.body.style.overflow = ''; // Restore scrolling
 }
 
 if (hamburger) {
   hamburger.addEventListener('click', function(e) {
+    e.preventDefault();
     e.stopPropagation();
     if (sidebar.classList.contains('open')) {
       closeSidebar();
@@ -220,6 +224,13 @@ document.querySelectorAll('.nav-link').forEach(function(link) {
       closeSidebar();
     }
   });
+});
+
+// Handle window resize - close sidebar if switching from mobile to desktop
+window.addEventListener('resize', function() {
+  if (window.innerWidth > 768) {
+    closeSidebar();
+  }
 });
 </script>
 
