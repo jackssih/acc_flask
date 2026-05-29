@@ -486,7 +486,9 @@ html[data-theme="dark"] .cal-day.today   { color: #fff    }
   display: flex;
   align-items: center;
   transition: background .15s;
+  z-index: 201;
 }
+
 .hamburger:hover { background: rgba(255,140,66,0.10); }
 
 .mobile-brand {
@@ -501,11 +503,13 @@ html[data-theme="dark"] .cal-day.today   { color: #fff    }
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.40);
-  z-index: 150;
+  background: rgba(0,0,0,0.50);
+  z-index: 250;
   backdrop-filter: blur(2px);
 }
-.sidebar-overlay.visible { display: block; }
+.sidebar-overlay.visible { 
+  display: block; 
+}
 
 /* ── MOBILE BREAKPOINT ≤ 768px ────────────────────────────── */
 @media (max-width: 768px) {
@@ -514,36 +518,43 @@ html[data-theme="dark"] .cal-day.today   { color: #fff    }
     display: flex;
   }
 
-  /* Sidebar becomes slide-out drawer */
-  .sidebar {
-    position: fixed;
-    top: 0;
-    left: -280px;
-    width: 260px;
-    height: 100vh;
-    z-index: 200;
-    transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: none;
-    overflow-y: auto;
-  }
-
-  .sidebar.open {
-    left: 0;
-    box-shadow: 4px 0 32px rgba(0,0,0,0.18);
-  }
-
-  /* Main content takes full width */
-  .main-content {
-    padding: 14px 14px 40px;
-    width: 100%;
-  }
-
-  /* Layout fixes */
+  /* Fix layout for mobile */
   .layout {
     flex-direction: column;
     height: auto;
     min-height: 100vh;
     overflow: visible;
+  }
+
+  /* Sidebar becomes slide-out drawer */
+  .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: -280px !important;
+    width: 260px !important;
+    height: 100vh !important;
+    z-index: 300 !important;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: none !important;
+    overflow-y: auto !important;
+    display: flex !important;
+  }
+
+  .sidebar.open {
+    left: 0 !important;
+    box-shadow: 4px 0 32px rgba(0,0,0,0.25) !important;
+  }
+
+  /* Main content takes full width */
+  .main-content {
+    padding: 14px 14px 40px !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  /* Ensure body doesn't scroll when sidebar is open */
+  body.sidebar-open {
+    overflow: hidden;
   }
 }
 
