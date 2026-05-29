@@ -7,54 +7,92 @@
 </div>
 <hr class="page-divider">
 
-<div style="max-width:440px; display:flex; flex-direction:column; gap:16px">
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start">
 
-  <!-- Appearance -->
-  <div class="card">
-    <div class="card-title"><i class="ti ti-palette"></i> Appearance</div>
-    <div class="settings-row">
-      <div>
-        <div class="settings-label">Dark Mode</div>
-        <div class="settings-hint">Switch between light and dark interface</div>
-      </div>
-      <label class="toggle-switch" title="Toggle dark mode">
-        <input type="checkbox" id="darkModeToggle">
-        <span class="toggle-track"><span class="toggle-thumb"></span></span>
-      </label>
-    </div>
-  </div>
+  <!-- LEFT COLUMN -->
+  <div style="display:flex; flex-direction:column; gap:16px">
 
-  <!-- Change Password -->
-  <div class="card">
-    <div class="card-title"><i class="ti ti-lock"></i> Change Password</div>
-    <form method="POST" action="{{ url_for('settings.index') }}">
-      <div class="form-group">
-        <label class="form-label">Current Password</label>
-        <input type="password" name="current_password" class="form-control" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">New Password</label>
-        <input type="password" name="new_password" class="form-control" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Confirm New Password</label>
-        <input type="password" name="confirm_password" class="form-control" required>
-      </div>
-      <button type="submit" class="btn btn-download">
-        <i class="ti ti-check"></i> Update Password
-      </button>
-    </form>
-  </div>
-
-  <!-- Account Info -->
-  <div class="card">
-    <div class="card-title"><i class="ti ti-info-circle"></i> Account Info</div>
-    <div style="font-size:13px; color:#3a3a3a; line-height:1.8">
-      <div><strong>Username:</strong> {{ session.username }}</div>
-      <div><strong>Role:</strong>
-        <span class="role-badge {{ session.role }}">{{ session.role|capitalize }}</span>
+    <!-- Appearance -->
+    <div class="card">
+      <div class="card-title"><i class="ti ti-palette"></i> Appearance</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">Dark Mode</div>
+          <div class="settings-hint">Switch between light and dark interface</div>
+        </div>
+        <label class="toggle-switch" title="Toggle dark mode">
+          <input type="checkbox" id="darkModeToggle">
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        </label>
       </div>
     </div>
+
+    <!-- Change Password -->
+    <div class="card">
+      <div class="card-title"><i class="ti ti-lock"></i> Change Password</div>
+      <form method="POST" action="{{ url_for('settings.index') }}">
+        <div class="form-group">
+          <label class="form-label">Current Password</label>
+          <input type="password" name="current_password" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <input type="password" name="new_password" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm New Password</label>
+          <input type="password" name="confirm_password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-download">
+          <i class="ti ti-check"></i> Update Password
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div style="display:flex; flex-direction:column; gap:16px">
+
+    <!-- Backup -->
+    <div class="card">
+      <div class="card-title"><i class="ti ti-database-export"></i> Backup Data</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">Backup to Computer</div>
+          <div class="settings-hint">Download a full copy of the database to your device</div>
+        </div>
+        <a href="{{ url_for('settings.backup_local') }}" class="btn btn-primary btn-sm">
+          <i class="ti ti-download"></i> Download
+        </a>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">Backup to Cloud</div>
+          <div class="settings-hint">
+            Upload to Dropbox &nbsp;·&nbsp;
+            <span style="font-size:11px">requires DROPBOX_TOKEN in config</span>
+          </div>
+        </div>
+        <form method="POST" action="{{ url_for('settings.backup_cloud') }}">
+          <button type="submit" class="btn btn-download btn-sm">
+            <i class="ti ti-cloud-upload"></i> Upload
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Account Info -->
+    <div class="card">
+      <div class="card-title"><i class="ti ti-info-circle"></i> Account Info</div>
+      <div style="font-size:13px; color:#3a3a3a; line-height:1.8">
+        <div><strong>Username:</strong> {{ session.username }}</div>
+        <div><strong>Role:</strong>
+          <span class="role-badge {{ session.role }}">{{ session.role|capitalize }}</span>
+        </div>
+      </div>
+    </div>
+
   </div>
 
 </div>
@@ -63,10 +101,7 @@
 {% block scripts %}
 <script>
   const toggle = document.getElementById('darkModeToggle');
-
-  // Reflect whichever theme is already active
   toggle.checked = document.documentElement.getAttribute('data-theme') === 'dark';
-
   toggle.addEventListener('change', () => {
     const theme = toggle.checked ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', theme);
