@@ -12,9 +12,31 @@
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px">
     <div>
       <div class="page-title">{{ titles.get(view_type, 'Students') }}</div>
-      <div class="page-sub">{{ rows|length }} record(s)</div>
+      <div class="page-sub">
+        {% if query %}
+          {{ rows|length }} result(s) for "<strong>{{ query }}</strong>"
+        {% else %}
+          {{ rows|length }} record(s)
+        {% endif %}
+      </div>
     </div>
-    <div style="display:flex; gap:8px">
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+      <!-- Search bar -->
+      <form method="GET" action="{{ url_for('dashboard.view', view_type=view_type) }}"
+            style="display:flex; gap:8px; align-items:center">
+        <div class="search-input-wrap">
+          <i class="ti ti-search"></i>
+          <input type="text" name="q" value="{{ query }}" class="form-control search-input"
+                 placeholder="Search by name or ID…" style="width:220px">
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">Search</button>
+        {% if query %}
+          <a href="{{ url_for('dashboard.view', view_type=view_type) }}" class="btn btn-sm" style="background:#F1EFE8; color:#5C5346;">
+            <i class="ti ti-x"></i> Clear
+          </a>
+        {% endif %}
+      </form>
+
       <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary btn-sm">
         <i class="ti ti-arrow-left"></i> Back
       </a>
@@ -87,7 +109,16 @@
           {% endif %}
         </tr>
         {% else %}
-        <tr><td colspan="8" style="text-align:center; color:#9A927E; padding:28px">No records found.</td></tr>
+        <tr>
+          <td colspan="8" style="text-align:center; color:#9A927E; padding:28px">
+            {% if query %}
+              No records found for "<strong>{{ query }}</strong>".
+              <a href="{{ url_for('dashboard.view', view_type=view_type) }}" style="color:#1D9E75; margin-left:6px">Clear search</a>
+            {% else %}
+              No records found.
+            {% endif %}
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
