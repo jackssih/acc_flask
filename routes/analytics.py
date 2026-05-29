@@ -79,8 +79,8 @@ def index():
         total=total, graduated=graduated, deceased=deceased,
         grad_rate=grad_rate, male=male, female=female,
         top_choir=top_choir, choir_stats=choir_stats,
-        trend_labels=json.dumps([str(y) for y in trend_labels]),
-        trend_values=json.dumps(trend_values),
-        choir_labels=json.dumps([s["choir"] for s in choir_stats]),
-        choir_rates=json.dumps([s["rate"] for s in choir_stats]),
+        trend_labels=[str(y) for y in trend_labels],
+        trend_values=trend_values,
+        choir_labels=[s["choir"] for s in choir_stats],
+        choir_rates=[s["rate"]  for s in choir_stats],
     )
