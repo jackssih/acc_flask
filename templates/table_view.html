@@ -48,6 +48,21 @@
 </div>
 <hr class="page-divider">
 
+<!-- Hidden JSON store for row data — avoids apostrophe/quote issues in onclick attrs -->
+<script id="row-data" type="application/json">
+[
+  {% for r in rows %}
+  {
+    "id": {{ r.identification_no | tojson }},
+    "status": {{ (r.status or '') | tojson }},
+    "comment": {{ (r.comment or '') | tojson }},
+    "name": {{ (r.name or '') | tojson }},
+    "grad_id": {{ (r.id_grad | string if r.id_grad else '') | tojson }}
+  }{% if not loop.last %},{% endif %}
+  {% endfor %}
+]
+</script>
+
 <div class="card" style="padding:0; overflow:hidden">
   <div class="table-wrap">
     <table>
@@ -96,13 +111,21 @@
           {% endif %}
 
           {% if is_admin %}
-          <td>
-            <button class="btn btn-primary btn-sm" onclick="openEdit('{{ r.identification_no }}','{{ r.status }}','{{ r.comment or '' }}')">
+          <td style="display:flex; gap:6px; flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="openEdit({{ loop.index0 }})">
               <i class="ti ti-edit"></i>
             </button>
+
             {% if view_type == 'not_graduated' %}
-            <button class="btn btn-download btn-sm" onclick="openGrad('{{ r.identification_no }}','{{ r.name }}')">
+            <button class="btn btn-download btn-sm" onclick="openGrad({{ loop.index0 }})">
               <i class="ti ti-school"></i> Graduate
+            </button>
+            {% endif %}
+
+            {% if view_type == 'graduated' %}
+            <button class="btn btn-sm" style="background:#FEE2E2; color:#B91C1C;"
+                    onclick="openUndoGrad({{ loop.index0 }})">
+              <i class="ti ti-arrow-back-up"></i> Undo
             </button>
             {% endif %}
           </td>
@@ -141,7 +164,8 @@
       </div>
       <div class="form-group">
         <label class="form-label">Comment</label>
-        <textarea name="comment" id="edit_comment" class="form-control" rows="3"></textarea>
+        <textarea name="comment" id="edit_comment" class="form-control" rows="3"
+                  placeholder="Add or edit a comment (leave blank to remove)…"></textarea>
       </div>
       <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px">
         <button type="button" class="btn btn-primary" onclick="closeEdit()">Cancel</button>
@@ -178,29 +202,65 @@
     </form>
   </div>
 </div>
+
+<!-- Undo graduation confirmation modal -->
+<div id="undoGradModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:1000; align-items:center; justify-content:center">
+  <div class="card" style="width:380px; max-width:95vw">
+    <div class="card-title" style="color:#B91C1C"><i class="ti ti-alert-triangle"></i> Undo Graduation</div>
+    <p style="font-size:14px; color:#5C5346; margin:0 0 16px">
+      Are you sure you want to move <strong id="undoGradName"></strong> back to <em>Not Graduated</em>?
+      This will delete their graduation record.
+    </p>
+    <form method="POST" action="{{ url_for('dashboard.remove_graduation') }}">
+      <input type="hidden" name="grad_id" id="undo_grad_id">
+      <input type="hidden" name="identification_no" id="undo_identification_no">
+      <div style="display:flex; gap:8px; justify-content:flex-end">
+        <button type="button" class="btn btn-primary" onclick="closeUndoGrad()">Cancel</button>
+        <button type="submit" class="btn btn-sm" style="background:#FEE2E2; color:#B91C1C;">
+          <i class="ti ti-arrow-back-up"></i> Yes, Undo
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endif %}
 {% endblock %}
 
 {% block scripts %}
 <script>
-function openEdit(id, status, comment) {
-  document.getElementById('edit_id').value = id;
-  document.getElementById('edit_status').value = status;
-  document.getElementById('edit_comment').value = comment;
-  const m = document.getElementById('editModal');
-  m.style.display = 'flex';
-}
-function closeEdit() { document.getElementById('editModal').style.display = 'none' }
+const rowData = JSON.parse(document.getElementById('row-data').textContent);
 
-function openGrad(id, name) {
-  document.getElementById('grad_id').value = id;
-  document.getElementById('gradName').textContent = name;
+// ── Edit modal ──────────────────────────────────────────────
+function openEdit(idx) {
+  const r = rowData[idx];
+  document.getElementById('edit_id').value      = r.id;
+  document.getElementById('edit_status').value  = r.status || 'alive';
+  document.getElementById('edit_comment').value = r.comment || '';
+  document.getElementById('editModal').style.display = 'flex';
+}
+function closeEdit() { document.getElementById('editModal').style.display = 'none'; }
+
+// ── Graduate modal ──────────────────────────────────────────
+function openGrad(idx) {
+  const r = rowData[idx];
+  document.getElementById('grad_id').value           = r.id;
+  document.getElementById('gradName').textContent    = r.name;
   document.getElementById('gradModal').style.display = 'flex';
 }
-function closeGrad() { document.getElementById('gradModal').style.display = 'none' }
+function closeGrad() { document.getElementById('gradModal').style.display = 'none'; }
 
-// Close modals on backdrop click
-['editModal','gradModal'].forEach(id => {
+// ── Undo graduation modal ───────────────────────────────────
+function openUndoGrad(idx) {
+  const r = rowData[idx];
+  document.getElementById('undo_grad_id').value           = r.grad_id;
+  document.getElementById('undo_identification_no').value = r.id;
+  document.getElementById('undoGradName').textContent     = r.name;
+  document.getElementById('undoGradModal').style.display  = 'flex';
+}
+function closeUndoGrad() { document.getElementById('undoGradModal').style.display = 'none'; }
+
+// ── Close any modal on backdrop click ──────────────────────
+['editModal','gradModal','undoGradModal'].forEach(id => {
   document.getElementById(id)?.addEventListener('click', function(e) {
     if (e.target === this) this.style.display = 'none';
   });
