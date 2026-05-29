@@ -128,12 +128,20 @@
 {% endblock %}
 
 {% block scripts %}
+<div id="chartData"
+  data-trend-labels="{{ trend_labels|tojson }}"
+  data-trend-values="{{ trend_values|tojson }}"
+  data-choir-labels="{{ choir_labels|tojson }}"
+  data-choir-rates="{{ choir_rates|tojson }}">
+</div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-const trendLabels = {{ trend_labels|safe }};
-const trendValues = {{ trend_values|safe }};
-const choirLabels = {{ choir_labels|safe }};
-const choirRates  = {{ choir_rates|safe }};
+const el = document.getElementById('chartData');
+const trendLabels = JSON.parse(el.dataset.trendLabels);
+const trendValues = JSON.parse(el.dataset.trendValues);
+const choirLabels = JSON.parse(el.dataset.choirLabels);
+const choirRates  = JSON.parse(el.dataset.choirRates);
+
 
 // ── shared colour logic (matches dashboard trend chart) ───
 function trendColors(values) {
