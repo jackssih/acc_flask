@@ -405,10 +405,10 @@
         </div>
 
         <div class="welcome-title">
-          The Choir<br><span>Archives.</span>
+          African Children's Choir<br><span>Archives.</span>
         </div>
         <p class="welcome-sub">
-          A living record of the <strong>children, choirs, and stories</strong> that have shaped this mission over the decades. Track graduations, explore histories, and contribute to the archive.
+          Helping Africa's most vulnerble children<strong>Today</strong> so that they can help Africa <strong>Tomorrow</strong> .
         </p>
 
         <div class="stats-row">
@@ -499,7 +499,7 @@
 
   </div>
 </div>
-
+<span id="page-meta" data-has-error="{{ 'true' if error else 'false' }}" hidden></span>
 <script>
   /* ── Panel switching ── */
   function showForm() {
@@ -526,10 +526,12 @@
   });
 
   /* ── Show error if present (Jinja) ── */
-  {% if error %}
+/* ── Show error if present ── */
+var hasError = document.getElementById('page-meta').dataset.hasError === 'true';
+if (hasError) {
   document.getElementById('errorBox').style.display = 'flex';
   showForm();
-  {% endif %}
+}
 
   /* ── Enter key on username → focus password ── */
   document.getElementById('username').addEventListener('keydown', function(e) {
@@ -547,7 +549,7 @@
   var captions = [
     "Every child's story,<br>preserved forever.",
     "A mission spanning<br>decades of voices.",
-    "Connecting children<br>across Africa and beyond.",
+    "Connecting cultures<br>across Africa and beyond.",
     "Education, music,<br>and lasting change.",
     "From choirs to<br>graduates and beyond.",
   ];
