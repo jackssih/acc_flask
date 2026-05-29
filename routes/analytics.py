@@ -1,5 +1,7 @@
 import json
-from flask import Blueprint, render_template
+import csv
+import io
+from flask import Blueprint, render_template, request, Response
 from routes.auth import login_required
 from database import connect_db
 
@@ -59,6 +61,19 @@ def index():
             trend[yr] = trend.get(yr, 0) + 1
     trend_labels = sorted(trend.keys())
     trend_values = [trend[y] for y in trend_labels]
+
+    # ── Export CSV if ?export=1 ──────────────────────────────
+    if request.args.get("export") == "1":
+        buf = io.StringIO()
+        fields = ["choir", "total", "graduated", "pending", "deceased", "rate"]
+        writer = csv.DictWriter(buf, fieldnames=fields, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(choir_stats)
+        return Response(
+            buf.getvalue(),
+            mimetype="text/csv",
+            headers={"Content-Disposition": "attachment;filename=choir_breakdown.csv"}
+        )
 
     return render_template("analytics.html",
         total=total, graduated=graduated, deceased=deceased,
