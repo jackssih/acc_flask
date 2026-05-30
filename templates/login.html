@@ -447,7 +447,14 @@
   }
 
   .green-accent {
-    display: none;
+      position: absolute; bottom: 32px; right: 32px;
+      width: 58px; height: 58px; border-radius: 14px;
+      background: rgba(29,184,106,0.10);
+      border: 1px solid rgba(29,184,106,0.28);
+      box-shadow: 0 0 18px rgba(29,184,106,0.15), inset 0 1px 0 rgba(255,255,255,0.25);
+      display: flex; align-items: top; justify-content: center;
+      overflow: hidden;
+      backdrop-filter: blur(6px);
   }
   .slide-bg {
     top: 0;
@@ -509,7 +516,7 @@
           African Children's Choir<br><span>Archives.</span>
         </div>
         <p class="welcome-sub">
-          Helping Africa's most vulnerble children <strong>Today</strong> so that they can help Africa <strong>Tomorrow</strong> .
+          Helping Africa's most vulnerble children<strong>Today</strong> so that they can help Africa <strong>Tomorrow</strong> .
         </p>
 
         <div class="stats-row">
