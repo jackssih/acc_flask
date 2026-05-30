@@ -449,7 +449,17 @@
   .green-accent {
     display: none;
   }
+  .slide-bg {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+  }
+
 }
+
   </style>
 </head>
 <body>
@@ -637,88 +647,77 @@ if (hasError) {
   });
 
   /* ── SLIDESHOW ── */
-  var captions = [
-    "Every child's story,<br>preserved forever.",
-    "A mission spanning<br>decades of voices.",
-    "Connecting cultures<br>across Africa and beyond.",
-    "Education, music,<br>and lasting change.",
-    "From choirs to<br>graduates and beyond.",
-  ];
+var captions = [
+  "Every child's story,<br>preserved forever.",
+  "A mission spanning<br>decades of voices.",
+  "Connecting cultures<br>across Africa and beyond.",
+  "Education, music,<br>and lasting change.",
+  "From choirs to<br>graduates and beyond.",
+];
 
-  var slideFiles = ['slide1.jpg','slide2.jpg','slide3.jpg','slide4.jpg','slide5.jpg'];
-  var HOLD = 3500, FADE = 900;
-  var panel = document.getElementById('photoPanel');
-  var dotsEl = document.getElementById('dots');
-  var headlineEl = document.getElementById('photoHeadline');
-  var slides = [], dotEls = [], current = 0, timer = null;
+var slideFiles = ['slide1.jpg','slide2.jpg','slide3.jpg','slide4.jpg','slide5.jpg'];
+var HOLD = 3500, FADE = 900;
+var panel     = document.getElementById('photoPanel');
+var dotsEl    = document.getElementById('dots');
+var headlineEl = document.getElementById('photoHeadline');
+var slides = [], dotEls = [], current = 0, timer = null;
 
-  slideFiles.forEach(function(f, i) {
-    var img = new Image();
-    img.onload = function() {
-      var div = document.createElement('div');
-      div.className = 'slide-bg';
-      div.style.backgroundImage = "url('/static/img/" + f + "')";
-      panel.insertBefore(div, panel.firstChild);
-      slides[i] = div;
-      checkReady();
-    };
-    img.onerror = function() {
-      slides[i] = null;
-      checkReady();
-    };
-    img.src = '/static/img/' + f;
-  });
+/* Create slide divs immediately — don't block on image load */
+slideFiles.forEach(function(f) {
+  var div = document.createElement('div');
+  div.className = 'slide-bg';
+  div.style.backgroundImage = "url('/static/img/" + f + "')";
+  div.style.top    = '0';
+  div.style.left   = '0';
+  div.style.right  = '0';
+  div.style.bottom = '0';
+  panel.insertBefore(div, panel.firstChild);
+  slides.push(div);
+});
 
-  function checkReady() {
-    var loaded = slides.filter(function(s){ return s !== undefined; });
-    if (loaded.length === slideFiles.length) initSlideshow();
-  }
+/* Build dots */
+slides.forEach(function(_, i) {
+  var d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.addEventListener('click', function() { goTo(i); });
+  dotsEl.appendChild(d);
+  dotEls.push(d);
+});
 
-  function initSlideshow() {
-    slides = slides.filter(Boolean);
-    if (slides.length === 0) return;
+/* Show first slide */
+if (slides.length > 0) {
+  slides[0].classList.add('visible');
+  timer = setTimeout(advance, HOLD);
+}
 
-    dotsEl.innerHTML = '';
-    slides.forEach(function(_, i) {
-      var d = document.createElement('div');
-      d.className = 'dot' + (i === 0 ? ' active' : '');
-      d.addEventListener('click', function() { goTo(i); });
-      dotsEl.appendChild(d);
-      dotEls.push(d);
-    });
+function goTo(idx) {
+  if (idx === current) return;
+  clearTimeout(timer);
+  var prev = slides[current];
+  current  = idx;
+  var next = slides[current];
 
-    slides[0].classList.add('visible');
-    timer = setTimeout(advance, HOLD);
-  }
+  next.classList.add('visible');
+  setTimeout(function() { prev.classList.remove('visible'); }, FADE);
 
-  function goTo(idx) {
-    if (idx === current) return;
-    clearTimeout(timer);
-    var prev = slides[current];
-    current = idx;
-    var next = slides[current];
+  dotEls.forEach(function(d, i) { d.classList.toggle('active', i === current); });
 
-    next.classList.add('visible');
-    setTimeout(function(){ prev.classList.remove('visible'); }, FADE);
+  /* crossfade headline */
+  headlineEl.style.opacity   = '0';
+  headlineEl.style.transform = 'translateY(6px)';
+  headlineEl.style.transition = 'opacity 0.4s, transform 0.4s';
+  setTimeout(function() {
+    headlineEl.innerHTML       = captions[current % captions.length];
+    headlineEl.style.opacity   = '1';
+    headlineEl.style.transform = 'translateY(0)';
+  }, 400);
 
-    dotEls.forEach(function(d, i){ d.classList.toggle('active', i === current); });
+  timer = setTimeout(advance, HOLD);
+}
 
-    // crossfade headline
-    headlineEl.style.opacity = '0';
-    headlineEl.style.transform = 'translateY(6px)';
-    headlineEl.style.transition = 'opacity 0.4s, transform 0.4s';
-    setTimeout(function() {
-      headlineEl.innerHTML = captions[current % captions.length];
-      headlineEl.style.opacity = '1';
-      headlineEl.style.transform = 'translateY(0)';
-    }, 400);
-
-    timer = setTimeout(advance, HOLD);
-  }
-
-  function advance() {
-    goTo((current + 1) % slides.length);
-  }
+function advance() {
+  goTo((current + 1) % slides.length);
+}
 </script>
 </body>
 </html>
