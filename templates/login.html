@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign In — ACC Archives</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -287,7 +287,7 @@
     }
 
     .field input {
-      width: 100%; padding: 12px 14px 12px 40px;
+      width: 100%; padding: 12px 45px 12px 40px;
       border: 1px solid #E0DDD5; border-radius: 11px;
       background: var(--cream); color: var(--ink);
       font-size: 14px; font-family: 'DM Sans', sans-serif;
@@ -303,12 +303,33 @@
 
     /* password toggle */
     .pw-toggle {
-      position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
-      background: none; border: none; cursor: pointer; padding: 0;
-      color: #C8C0B2; font-size: 17px;
-      transition: color 0.2s; line-height: 1;
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #A9A294;
+      font-size: 18px;
+      transition: color 0.2s;
+      border-radius: 20px;
+      width: 28px;
+      height: 28px;
+      z-index: 3;
     }
-    .pw-toggle:hover { color: var(--orange-mid) }
+    .pw-toggle:hover { 
+      color: var(--orange-mid); 
+      background: rgba(0,0,0,0.02); 
+    }
+    .pw-toggle:active { 
+      transform: translateY(-50%) scale(0.96); 
+    }
 
     .btn-signin {
       width: 100%; padding: 14px;
@@ -466,7 +487,6 @@
   }
 
 }
-
   </style>
 </head>
 <body>
@@ -513,10 +533,10 @@
         </div>
 
         <div class="welcome-title">
-          African Children's Choir<br><span>Archives.</span>
+          The African Children's Choir<br><span>Archives.</span>
         </div>
         <p class="welcome-sub">
-          Helping Africa's most vulnerble children<strong>Today</strong> so that they can help Africa <strong>Tomorrow</strong> .
+          Helping Africa's most vulnerable children <strong>Today</strong> so that they may help Africa <strong>Tomorrow</strong>.
         </p>
 
         <div class="stats-row">
@@ -552,7 +572,7 @@
         </button>
 
         <div class="form-title">Sign in</div>
-        <p class="form-sub">Welcome back — enter your credentials to continue</p>
+        <p class="form-sub">Welcome — enter your credentials to continue</p>
 
         <!-- Error box (shown on auth failure) -->
         <div class="error-box" id="errorBox" style="display:none">
@@ -580,7 +600,8 @@
               <input
                 type="password" id="password" name="password"
                 placeholder="Enter your password"
-                autocomplete="current-password" required
+                autocomplete="current-password" 
+                required
               >
               <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password">
                 <i class="ti ti-eye" id="pwIcon"></i>
@@ -607,7 +628,7 @@
 
   </div>
 </div>
-<span id="page-meta" data-has-error="{{ 'true' if error else 'false' }}" hidden></span>
+
 <script>
   /* ── Panel switching ── */
   function showForm() {
@@ -621,33 +642,33 @@
   }
 
   /* ── Password toggle ── */
- /* ── Password toggle ── */
-  function togglePassword() {
-    var input = document.getElementById('password');
-    var icon  = document.getElementById('pwIcon');
-    if (input.type === 'password') {
-      input.type = 'text';
-      icon.className = 'ti ti-eye-off';
-    } else {
-      input.type = 'password';
-      icon.className = 'ti ti-eye';
-    }
+  // Password visibility toggle - FIXED
+  var toggleBtn = document.getElementById('pwToggle');
+  var passwordInput = document.getElementById('password');
+  var pwIcon = document.getElementById('pwIcon');
+
+  if (toggleBtn && passwordInput && pwIcon) {
+    toggleBtn.addEventListener('click', function(e) {
+      e.preventDefault();  // Prevent any form submission
+      e.stopPropagation(); // Stop event bubbling
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        pwIcon.className = 'ti ti-eye-off';
+        toggleBtn.setAttribute('aria-label', 'Hide password');
+      } else {
+        passwordInput.type = 'password';
+        pwIcon.className = 'ti ti-eye';
+        toggleBtn.setAttribute('aria-label', 'Show password');
+      }
+    });
   }
 
-  document.addEventListener('DOMContentLoaded', function() {
-    var toggleBtn = document.getElementById('pwToggle');
-    if (toggleBtn) {
-      toggleBtn.addEventListener('click', togglePassword);
-    }
-  });
-
   /* ── Show error if present (Jinja) ── */
-/* ── Show error if present ── */
-var hasError = document.getElementById('page-meta').dataset.hasError === 'true';
-if (hasError) {
+  {% if error %}
   document.getElementById('errorBox').style.display = 'flex';
   showForm();
-}
+  {% endif %}
 
   /* ── Enter key on username → focus password ── */
   document.getElementById('username').addEventListener('keydown', function(e) {
@@ -662,77 +683,88 @@ if (hasError) {
   });
 
   /* ── SLIDESHOW ── */
-var captions = [
-  "Every child's story,<br>preserved forever.",
-  "A mission spanning<br>decades of voices.",
-  "Connecting cultures<br>across Africa and beyond.",
-  "Education, music,<br>and lasting change.",
-  "From choirs to<br>graduates and beyond.",
-];
+  var captions = [
+    "Every child's story,<br>preserved forever.",
+    "A mission spanning<br>decades of voices.",
+    "Connecting culture<br>across Africa and beyond.",
+    "Education, music,<br>and lasting change.",
+    "From choirs to<br>graduates and beyond.",
+  ];
 
-var slideFiles = ['slide1.jpg','slide2.jpg','slide3.jpg','slide4.jpg','slide5.jpg'];
-var HOLD = 3500, FADE = 900;
-var panel     = document.getElementById('photoPanel');
-var dotsEl    = document.getElementById('dots');
-var headlineEl = document.getElementById('photoHeadline');
-var slides = [], dotEls = [], current = 0, timer = null;
+  var slideFiles = ['slide1.jpg','slide2.jpg','slide3.jpg','slide4.jpg','slide5.jpg'];
+  var HOLD = 3500, FADE = 900;
+  var panel = document.getElementById('photoPanel');
+  var dotsEl = document.getElementById('dots');
+  var headlineEl = document.getElementById('photoHeadline');
+  var slides = [], dotEls = [], current = 0, timer = null;
 
-/* Create slide divs immediately — don't block on image load */
-slideFiles.forEach(function(f) {
-  var div = document.createElement('div');
-  div.className = 'slide-bg';
-  div.style.backgroundImage = "url('/static/img/" + f + "')";
-  div.style.top    = '0';
-  div.style.left   = '0';
-  div.style.right  = '0';
-  div.style.bottom = '0';
-  panel.insertBefore(div, panel.firstChild);
-  slides.push(div);
-});
+  slideFiles.forEach(function(f, i) {
+    var img = new Image();
+    img.onload = function() {
+      var div = document.createElement('div');
+      div.className = 'slide-bg';
+      div.style.backgroundImage = "url('/static/img/" + f + "')";
+      panel.insertBefore(div, panel.firstChild);
+      slides[i] = div;
+      checkReady();
+    };
+    img.onerror = function() {
+      slides[i] = null;
+      checkReady();
+    };
+    img.src = '/static/img/' + f;
+  });
 
-/* Build dots */
-slides.forEach(function(_, i) {
-  var d = document.createElement('div');
-  d.className = 'dot' + (i === 0 ? ' active' : '');
-  d.addEventListener('click', function() { goTo(i); });
-  dotsEl.appendChild(d);
-  dotEls.push(d);
-});
+  function checkReady() {
+    var loaded = slides.filter(function(s){ return s !== undefined; });
+    if (loaded.length === slideFiles.length) initSlideshow();
+  }
 
-/* Show first slide */
-if (slides.length > 0) {
-  slides[0].classList.add('visible');
-  timer = setTimeout(advance, HOLD);
-}
+  function initSlideshow() {
+    slides = slides.filter(Boolean);
+    if (slides.length === 0) return;
 
-function goTo(idx) {
-  if (idx === current) return;
-  clearTimeout(timer);
-  var prev = slides[current];
-  current  = idx;
-  var next = slides[current];
+    dotsEl.innerHTML = '';
+    slides.forEach(function(_, i) {
+      var d = document.createElement('div');
+      d.className = 'dot' + (i === 0 ? ' active' : '');
+      d.addEventListener('click', function() { goTo(i); });
+      dotsEl.appendChild(d);
+      dotEls.push(d);
+    });
 
-  next.classList.add('visible');
-  setTimeout(function() { prev.classList.remove('visible'); }, FADE);
+    slides[0].classList.add('visible');
+    timer = setTimeout(advance, HOLD);
+  }
 
-  dotEls.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+  function goTo(idx) {
+    if (idx === current) return;
+    clearTimeout(timer);
+    var prev = slides[current];
+    current = idx;
+    var next = slides[current];
 
-  /* crossfade headline */
-  headlineEl.style.opacity   = '0';
-  headlineEl.style.transform = 'translateY(6px)';
-  headlineEl.style.transition = 'opacity 0.4s, transform 0.4s';
-  setTimeout(function() {
-    headlineEl.innerHTML       = captions[current % captions.length];
-    headlineEl.style.opacity   = '1';
-    headlineEl.style.transform = 'translateY(0)';
-  }, 400);
+    next.classList.add('visible');
+    setTimeout(function(){ prev.classList.remove('visible'); }, FADE);
 
-  timer = setTimeout(advance, HOLD);
-}
+    dotEls.forEach(function(d, i){ d.classList.toggle('active', i === current); });
 
-function advance() {
-  goTo((current + 1) % slides.length);
-}
+    // crossfade headline
+    headlineEl.style.opacity = '0';
+    headlineEl.style.transform = 'translateY(6px)';
+    headlineEl.style.transition = 'opacity 0.4s, transform 0.4s';
+    setTimeout(function() {
+      headlineEl.innerHTML = captions[current % captions.length];
+      headlineEl.style.opacity = '1';
+      headlineEl.style.transform = 'translateY(0)';
+    }, 400);
+
+    timer = setTimeout(advance, HOLD);
+  }
+
+  function advance() {
+    goTo((current + 1) % slides.length);
+  }
 </script>
 </body>
 </html>
